@@ -96,12 +96,12 @@
   revision = "0db6ca81f8947924bf449f1ffcfe688301842c9e"
 
 [[projects]]
-  digest = "1:e133b48aaf567ac145fc0633f40c2092f3bb9d6f7220e5ab09d2df6bf51891d0"
+  branch = "master"
+  digest = "1:2bcc1836da5241da7fffb9b709389e28d5375aa2d285f6b952a567dd1583d330"
   name = "github.com/naeemkhan12/kettle"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9ee7ae638db83890d5b4afe3a29a743544267687"
-  version = "v2.2.3"
+  revision = "359e801379d774cea1235624a267654370f0b9cc"
 
 [[projects]]
   digest = "1:c268acaa4a4d94a467980e5e91452eb61c460145765293dc0aed48e5e9919cc6"

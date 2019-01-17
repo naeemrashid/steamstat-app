@@ -86,6 +86,26 @@ func (s *ISteamUserStatsService) GetGlobalAchievementPercentagesForApp(gameid in
 	return response.AchievementPercentages.Achievements, resp, err
 }
 
+type currentPlayerResp struct {
+	Response PlayerCount `json:"response"`
+}
+type PlayerCount struct {
+	PlayerCount int64 `json:"player_count"`
+	Result      int64 `json:"result"`
+}
+
+func (s *ISteamUserStatsService) GetNumberOfCurrentPlayers(appid int64) (PlayerCount, *http.Response, error) {
+	response := new(currentPlayerResp)
+	type params struct {
+		AppID int64 `url:"appid"`
+	}
+	p := &params{
+		AppID: appid,
+	}
+	resp, err := s.sling.New().Get("GetNumberOfCurrentPlayers/v1/").QueryStruct(p).ReceiveSuccess(response)
+	return response.Response, resp, err
+}
+
 type schemaResp struct {
 	Game GameSchema `json:"game"`
 }
