@@ -23,6 +23,8 @@ import (
 const (
 	APIKEY     = "B05DAE446F74CDDADAFFEFFE6314B39F"
 	DATEFORMAT = "2006-1-6"
+	DBMS       = "mysql"
+	DBMS_ARGS  = "steamuser:steamuser@/steamstats?charset=utf8&parseTime=True&loc=Local"
 )
 
 var (
@@ -36,10 +38,10 @@ var (
 
 func init() {
 	var err error
-	db, err = gorm.Open("mysql", "naeem:naeem@/steamstats?charset=utf8&parseTime=True&loc=Local")
+	db, err = gorm.Open(DBMS, DBMS_ARGS)
 	if err != nil {
 		fmt.Println(err)
-		panic("failed to connect database")
+		panic("failed to connect to database")
 	}
 	//Migrate the schema
 	db.AutoMigrate(&model.Game{}, &model.PeakPlayer{}, &model.GameDetail{}, &model.Price{})
@@ -51,11 +53,13 @@ func init() {
 		panic(err)
 	}
 	initGameStatMap()
+	updateGamesStat()
+	updatePeakPlayers()
 }
 
 func main() {
-	updateStatsEvery(1 * time.Minute)
-	updatePeakPlayerEvery(2 * time.Minute)
+	updateStatsEvery(1 * time.Hour)
+	updatePeakPlayerEvery(24 * time.Hour)
 	go serve()
 	waitForSignal()
 	err := db.Close()
@@ -64,11 +68,6 @@ func main() {
 	}
 }
 func initGameStatMap() {
-	//games, _, err := steamClient.ISteamAppsService.GetAppList()
-	//if err != nil {
-	//	fmt.Println("Error Retrieving games list.. Exiting")
-	//	return
-	//}
 	var games []model.Game
 	db.Find(&games)
 	gameStat.Lock()
@@ -135,11 +134,6 @@ func get48hrChange(id int64) []movingaverage.Values {
 	return nil
 }
 func updateStatsEvery(d time.Duration) {
-	//games, _, err := steamClient.ISteamAppsService.GetAppList()
-	//if err != nil {
-	//	panic(err)
-	//}
-
 	go func() {
 		for range time.Tick(d) {
 			updateGamesStat()
@@ -179,22 +173,20 @@ func updatePeakPlayerEvery(d time.Duration) {
 }
 
 func fetchGames() error {
-	//TODO: un comment below code to fetch data from steamAPI
-	//apps, _, err := steamClient.ISteamAppsService.GetAppList()
-	//if err != nil {
-	//	log.Println("Unable to fetch apps list from steam")
-	//	return err
-	//}
-
-	// For testing purpose
-	apps := []model.Game{model.Game{ID: 730, Name: "Counter Strike Global Offensive"},
-		model.Game{ID: 570, Name: "Dota 2"}, model.Game{ID: 440, Name: "Team Fortress"}}
+	apps, _, err := steamClient.ISteamAppsService.GetAppList()
+	if err != nil {
+		log.Println("Unable to fetch apps list from steam")
+		return err
+	}
+	// TODO: For testing purpose, only three games are tested
+	//apps := []model.Game{model.Game{ID: 730, Name: "Counter Strike Global Offensive"},
+	//	model.Game{ID: 570, Name: "Dota 2"}, model.Game{ID: 440, Name: "Team Fortress"}}
 	for _, app := range apps {
-		details, _, err := steamClient.Store.AppDetails(app.ID)
+		details, _, err := steamClient.Store.AppDetails(app.AppID)
 		if err == nil {
-			db.Save(&model.Game{ID: app.ID, Name: app.Name})
+			db.Save(&model.Game{ID: app.AppID, Name: app.Name})
 			db.Save(&model.GameDetail{
-				GameID:              app.ID,
+				GameID:              app.AppID,
 				Title:               app.Name,
 				Type:                details.Type,
 				IsFree:              details.IsFree,
@@ -208,7 +200,7 @@ func fetchGames() error {
 				Background:          details.Background,
 			})
 			db.Save(&model.Price{
-				GameID:   app.ID,
+				GameID:   app.AppID,
 				Currency: details.PriceOverview.Currency,
 				Initial:  details.PriceOverview.Initial,
 				Final:    details.PriceOverview.Final,
@@ -219,6 +211,7 @@ func fetchGames() error {
 }
 
 func serve() {
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	v1 := router.Group("/api/v1/gamestats")
 	{
@@ -279,8 +272,6 @@ func topGamesByCP(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "topgames": topGames, "message": "changa vat"})
 }
 
-//TODO: work left on toprecords and gameList. topRecords involves DB and gameList should fetch details of a single game.
-
 func topRecords(c *gin.Context) {
 	var games []model.Game
 	var topRecords []model.TopRecords
@@ -331,4 +322,3 @@ func gameDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "details": transformedGameDetail})
 
 }
-
