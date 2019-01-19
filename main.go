@@ -38,6 +38,7 @@ var (
 
 func init() {
 	var err error
+	log.Println("Connecting to Database...")
 	db, err = gorm.Open(DBMS, DBMS_ARGS)
 	if err != nil {
 		fmt.Println(err)
@@ -68,6 +69,7 @@ func main() {
 	}
 }
 func initGameStatMap() {
+	log.Println("Initializeing Gamestats table...")
 	var games []model.Game
 	db.Find(&games)
 	gameStat.Lock()
@@ -173,6 +175,7 @@ func updatePeakPlayerEvery(d time.Duration) {
 }
 
 func fetchGames() error {
+	log.Println("Downloading Games list from Steam API...")
 	apps, _, err := steamClient.ISteamAppsService.GetAppList()
 	if err != nil {
 		log.Println("Unable to fetch apps list from steam")
@@ -270,7 +273,7 @@ func topGamesByCP(c *gin.Context) {
 	sort.Slice(topGames[:], func(i, j int) bool {
 		return topGames[i].CurrentPlayers > topGames[j].CurrentPlayers
 	})
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "topgames": topGames, "message": "changa vat"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "topgames": topGames})
 }
 
 func topRecords(c *gin.Context) {
