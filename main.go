@@ -210,8 +210,9 @@ func fetchGames() error {
 	return nil
 }
 
+
+
 func serve() {
-	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	v1 := router.Group("/api/v1/gamestats")
 	{
