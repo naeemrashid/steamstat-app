@@ -61,16 +61,3 @@ func AvgChangePercnt(initialValue, finalValue float64)float64{
 ## Limitations 
 + steamcharts.com has **hours played** count which we skipped as steampowered api does not provide any interface to query hours played unless you have players account ids(which we do not have ones).
 + steamcharts.com has a top graph with entry of online Players and in-game players, we had the in-game player count but we didn't had the online players count so we skipped that table, again it was not in the api straight-forward you need player account ids to query player status etc.
-
-## support us
-we need your support to continue the good work please vist the gigs, like it, give good ratings so that we may reach out to others :) thanks.
-
-https://www.fiverr.com/naeemrashidkhan/write-microservice-in-golang
-https://www.fiverr.com/naeemrashidkhan/do-scripting-in-golang
-https://www.fiverr.com/naeemrashidkhan/create-kubernetes-manifests-for-you
-
-We are offering mobile apps related stuff as well.
-
-https://www.fiverr.com/badar54/develop-ios-and-android-application-in-react-native
-https://www.fiverr.com/badar54/javafx-desktop-application-for-you
-https://www.fiverr.com/muhammadshoa753/create-hybrid-apps-using-react-native-and-flutter
