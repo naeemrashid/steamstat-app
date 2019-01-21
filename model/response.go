@@ -6,17 +6,24 @@ import (
 )
 
 type TransformedGameDetail struct {
-	Title               string `json:"title"`
-	Type                string `json:"type"`
-	IsFree              bool   `json:"is_free"`
-	DetailedDescription string `json:"detailed_description"`
-	AboutTheGame        string `json:"about_the_game"`
-	ShortDescription    string `json:"short_description"`
-	SupportedLanguages  string `json:"supported_languages"`
-	Reviews             string `json:"reviews"`
-	HeaderImage         string `json:"header_image"`
-	Website             string `json:"website"`
-	Background          string `json:"background"`
+	Title               string    `json:"title"`
+	Type                string    `json:"type"`
+	IsFree              bool      `json:"is_free"`
+	DetailedDescription string    `json:"detailed_description"`
+	AboutTheGame        string    `json:"about_the_game"`
+	ShortDescription    string    `json:"short_description"`
+	SupportedLanguages  string    `json:"supported_languages"`
+	Reviews             string    `json:"reviews"`
+	HeaderImage         string    `json:"header_image"`
+	Website             string    `json:"website"`
+	Background          string    `json:"background"`
+	Price               GamePrice `json:"price"`
+}
+type GamePrice struct {
+	Currency        string `json:"currency"`
+	Initial         int    `json:"initial"`
+	Final           int    `json:"final"`
+	DiscountPercent int    `json:"discount_percent"`
 }
 type Trending struct {
 	GameID         int64                  `json:"id"`
