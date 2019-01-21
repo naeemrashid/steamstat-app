@@ -14,11 +14,11 @@ type GameDetail struct {
 	Title               string `json:"title"`
 	Type                string `json:"type"`
 	IsFree              bool   `json:"is_free"`
-	DetailedDescription string `json:"detailed_description"`
-	AboutTheGame        string `json:"about_the_game"`
-	ShortDescription    string `json:"short_description"`
-	SupportedLanguages  string `json:"supported_languages"`
-	Reviews             string `json:"reviews"`
+	DetailedDescription string `sql:"type:text"`
+	AboutTheGame        string `sql:"type:text"`
+	ShortDescription    string `sql:"type:text"`
+	SupportedLanguages  string `sql:"type:text"`
+	Reviews             string `sql:"type:text"`
 	HeaderImage         string `json:"header_image"`
 	Website             string `json:"website"`
 	Background          string `json:"background"`
