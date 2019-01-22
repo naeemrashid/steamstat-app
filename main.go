@@ -24,7 +24,8 @@ const (
 	APIKEY     = "B05DAE446F74CDDADAFFEFFE6314B39F"
 	DATEFORMAT = "2006-1-6"
 	DBMS       = "mysql"
-	DBMS_ARGS  = "steamuser:steamuser@/steamstats?charset=utf8&parseTime=True&loc=Local"
+	// TODO: replace user with steamuser
+	DBMS_ARGS = "steamuser:steamuser@/steamstats?charset=utf8&parseTime=True&loc=Local"
 )
 
 var (
@@ -59,9 +60,9 @@ func init() {
 }
 
 func main() {
+	go serve()
 	updateStatsEvery(1 * time.Hour)
 	updatePeakPlayerEvery(24 * time.Hour)
-	go serve()
 	waitForSignal()
 	err := db.Close()
 	if err != nil {
@@ -87,7 +88,6 @@ func initGameStatMap() {
 func updateGameStat(id int64) error {
 	stat, _, err := steamClient.ISteamUserStatsService.GetNumberOfCurrentPlayers(id)
 	if err != nil {
-		fmt.Println("Unable to update Game statistics: ")
 		return err
 	}
 	gameStat.Lock()
@@ -184,6 +184,7 @@ func fetchGames() error {
 	// TODO: For testing purpose, only three games are tested
 	//apps := []model.Game{model.Game{ID: 730, Name: "Counter Strike Global Offensive"},
 	//	model.Game{ID: 570, Name: "Dota 2"}, model.Game{ID: 440, Name: "Team Fortress"}}
+	log.Println("Adding 100 games details to database...")
 	for _, app := range apps {
 		details, _, err := steamClient.Store.AppDetails(app.AppID)
 		if err == nil {
@@ -212,8 +213,6 @@ func fetchGames() error {
 	}
 	return nil
 }
-
-
 
 func serve() {
 	router := gin.Default()
@@ -244,6 +243,10 @@ func trending(c *gin.Context) {
 	sort.Slice(trendingGames[:], func(i, j int) bool {
 		return trendingGames[i].Change24hr > trendingGames[j].Change24hr
 	})
+	// return top 500 entries
+	if len(trendingGames) > 500 {
+		trendingGames = trendingGames[:500]
+	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "trending": trendingGames})
 
 }
@@ -260,7 +263,8 @@ func topGamesByCP(c *gin.Context) {
 			cp = value.CurrentPlayers
 		}
 		gameStat.RUnlock()
-		db.Where("date BETWEEN ? AND ?", time.Now().AddDate(0, -1, 0).String(), time.Now().String()).Find(&peakPlayers)
+		db.Where("date BETWEEN ? AND ?", time.Now().AddDate(0, -1, 0).String(),
+			time.Now().String()).Find(&peakPlayers)
 		for _, val := range peakPlayers {
 			last30Days = append(last30Days, model.TimeSeries{Time: val.Date.Format(DATEFORMAT), PeakPlayer: val.PeakPlayers})
 		}
@@ -273,6 +277,11 @@ func topGamesByCP(c *gin.Context) {
 	sort.Slice(topGames[:], func(i, j int) bool {
 		return topGames[i].CurrentPlayers > topGames[j].CurrentPlayers
 	})
+	// return only first 500 entries
+	if len(topGames) > 500 {
+		topGames = topGames[:500]
+	}
+
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "topgames": topGames})
 }
 
@@ -299,6 +308,10 @@ func topRecords(c *gin.Context) {
 	sort.Slice(topRecords[:], func(i, j int) bool {
 		return topRecords[i].PeakPlayers > topRecords[j].PeakPlayers
 	})
+	// return only first 500 entries
+	if len(topRecords) > 500 {
+		topRecords = topRecords[:500]
+	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "top_records": topRecords})
 }
 func gameDetails(c *gin.Context) {
@@ -307,9 +320,17 @@ func gameDetails(c *gin.Context) {
 		return
 	}
 	var gameDetail model.GameDetail
+	var price model.Price
 	var transformedGameDetail model.TransformedGameDetail
 	game := &model.Game{ID: int64(id)}
 	db.Model(&game).Related(&gameDetail)
+	db.Model(&game).Related(&price)
+	gamePrice := model.GamePrice{
+		Currency:        price.Currency,
+		Initial:         price.Initial,
+		Final:           price.Final,
+		DiscountPercent: price.DiscountPercent,
+	}
 	transformedGameDetail = model.TransformedGameDetail{
 		Title:               gameDetail.Title,
 		Type:                gameDetail.Type,
@@ -322,6 +343,7 @@ func gameDetails(c *gin.Context) {
 		HeaderImage:         gameDetail.HeaderImage,
 		Website:             gameDetail.Website,
 		Background:          gameDetail.Background,
+		Price:               gamePrice,
 	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "details": transformedGameDetail})
 
