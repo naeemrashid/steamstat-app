@@ -24,7 +24,6 @@ const (
 	APIKEY     = "B05DAE446F74CDDADAFFEFFE6314B39F"
 	DATEFORMAT = "2006-1-6"
 	DBMS       = "mysql"
-	// TODO: replace user with steamuser
 	DBMS_ARGS = "steamuser:steamuser@/steamstats?charset=utf8&parseTime=True&loc=Local"
 )
 
