@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	APIKEY     = "B05DAE446F74CDDADAFFEFFE6314B39F"
+	APIKEY     = "your-api-key"
 	DATEFORMAT = "2006-1-6"
 	DBMS       = "mysql"
 	DBMS_ARGS = "steamuser:steamuser@/steamstats?charset=utf8&parseTime=True&loc=Local"
